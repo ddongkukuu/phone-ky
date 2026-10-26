@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#101116">
+<title>YUSHI — Private Phone</title>
+
+<style>
+:root {
+  --bg: #f5f5f7;
+  --text: #17171a;
+  --muted: #8c8c93;
+  --line: #e5e5e9;
+  --blue: #1685ff;
+  --yellow: #fee500;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Noto Sans KR", sans-serif;
+  color: var(--text);
+  background: #111116;
+}
+
+button, input, textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+#phone {
+  width: 100%;
+  max-width: 480px;
+  height: 100dvh;
+  min-height: 550px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+#status {
+  height: 42px;
+  padding: 12px 25px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 650;
+  position: absolute;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+#status.dark {
+  color: white;
+}
+
+#status.light {
+  color: #111;
+}
+
+#island {
+  position: absolute;
+  z-index: 51;
+  top: 9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 105px;
+  height: 29px;
+  border-radius: 30px;
+  background: #000;
+}
+
+#screen {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.page {
+  position: absolute;
+  inset: 0;
+  display: none;
+  overflow-y: auto;
+  padding: 58px 0 45px;
+  background: white;
+  animation: appear .18s ease;
+}
+
+.page.active {
+  display: block;
+}
+
+@keyframes appear {
+  from { opacity: .5; }
+  to { opacity: 1; }
+}
+
+#home {
+  background: linear-gradient(155deg,#b7bdc6,#e8e4e1 55%,#a7a6aa);
+  padding: 65px 23px 45px;
+}
+
+#lock, #passcode {
+  color: white;
+  background-size: cover;
+  background-position: center;
+}
+
+#lock {
+  background-image:
+    linear-gradient(180deg,rgba(0,0,0,.20),rgba(0,0,0,.15)),
+    linear-gradient(135deg,#13232c,#565b61,#202126);
+}
+
+.lock-date {
+  text-align: center;
+  margin-top: 65px;
+  font-size: 19px;
+  text-shadow: 0 2px 8px #333;
+}
+
+.lock-time {
+  text-align: center;
+  font-size: clamp(76px,22vw,112px);
+  letter-spacing: -5px;
+  line-height: 1.15;
+  font-weight: 300;
+  margin-top: 0;
+}
+
+.lock-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+.notification {
+  position: absolute;
+  bottom: 125px;
+  left: 18px;
+  right: 18px;
+  background: rgba(235,235,240,.75);
+  backdrop-filter: blur(24px);
+  border-radius: 23px;
+  padding: 18px;
+  color: #222;
+}
+
+.notification small {
+  color: #666;
+}
+
+.unlock-hint {
+  position: absolute;
+  bottom: 70px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 13px;
+  opacity: .85;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 24px 10px;
+  margin-top: 50px;
+}
+
+.app-icon {
+  border: 0;
+  background: transparent;
+  text-align: center;
+  padding: 0;
+  color: inherit;
+}
+
+.app-icon .icon {
+  width: 57px;
+  height: 57px;
+  margin: 0 auto 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  border-radius: 15px;
+  box-shadow: 0 3px 8px #0001;
+}
+
+.app-icon span:last-child {
+  font-size: 11px;
+}
+
+.kakao-icon { background: #fee500; }
+.insta-icon { background: linear-gradient(135deg,#7445d8,#ed3d76,#ffb54a); color:white; }
+.photo-icon { background: linear-gradient(140deg,#a6e6ff,#d7c9ff,#ffd1df); }
+.note-icon { background: #fff; }
+.contact-icon { background: #56b77a; color:white; }
+.setting-icon { background: #d4d6da; }
+.msg-icon { background: #3c8aff; color:white; }
+.phone-icon { background: #5cc77d; color:white; }
+
+.dock {
+  position: absolute;
+  bottom: 32px;
+  left: 16px;
+  right: 16px;
+  height: 85px;
+  border-radius: 25px;
+  background: rgba(255,255,255,.48);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.dock .icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+}
+
+.home-widgets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.widget {
+  border-radius: 18px;
+  padding: 16px;
+  min-height: 100px;
+  background: rgba(255,255,255,.65);
+  font-size: 13px;
+}
+
+.topbar {
+  height: 53px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: inherit;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar h2 {
+  font-size: 21px;
+  margin: 0;
+}
+
+.back {
+  border: 0;
+  background: none;
+  font-size: 27px;
+  padding: 0 8px 0 0;
+}
+
+.muted { color: var(--muted); }
+
+.section-title {
+  font-size: 29px;
+  font-weight: 750;
+  margin: 18px 22px 25px;
+}
+
+.list {
+  padding: 0 16px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  min-width: 0;
+}
+
+.row-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-title {
+  font-weight: 650;
+  font-size: 15px;
+}
+
+.row-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(140deg,#d9d9df,#a5a5af);
+  color: white;
+  font-size: 19px;
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.badge {
+  background: #fa604b;
+  color: white;
+  border-radius: 20px;
+  font-size: 11px;
+  padding: 4px 7px;
+}
+
+.searchbox {
+  margin: 10px 16px 16px;
+  padding: 11px 14px;
+  border-radius: 11px;
+  background: #f1f1f4;
+  border: 0;
+  width: calc(100% - 32px);
+  outline: none;
+}
+
+#chatPage {
+  padding-bottom: 0;
+  background: #b6c8d9;
+}
+
+.chat-header {
+  background: rgba(255,255,255,.92);
+  border-bottom: 1px solid #d8d8dc;
+}
+
+.chat-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+}
+
+.chat-profile .avatar {
+  width: 38px;
+  height: 38px;
+  flex-basis: 38px;
+}
+
+.chat-profile .row-title { font-size: 16px; }
+
+.chat-history {
+  position: absolute;
+  top: 105px;
+  bottom: 78px;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.day-label {
+  text-align: center;
+  font-size: 11px;
+  color: #45515e;
+  padding: 10px;
+}
+
+.bubble-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: 90%;
+}
+
+.bubble-row.mine {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.bubble {
+  padding: 10px 12px;
+  border-radius: 15px;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.bubble-row:not(.mine) .bubble {
+  background: white;
+  border-top-left-radius: 4px;
+}
+
+.bubble-row.mine .bubble {
+  background: #fee500;
+  border-top-right-radius: 4px;
+}
+
+.bubble-time {
+  font-size: 9px;
+  color: #52606c;
+  white-space: nowrap;
+  padding-bottom: 3px;
+}
+
+.chat-compose {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 10px 20px;
+  background: #f7f7f9;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.chat-compose textarea {
+  flex: 1;
+  min-width: 0;
+  max-height: 100px;
+  resize: none;
+  border: 1px solid #e2e2e7;
+  background: white;
+  border-radius: 20px;
+  padding: 11px 14px;
+  outline: none;
+}
+
+.send {
+  border: 0;
+  background: #fee500;
+  width: 43px;
+  height: 43px;
+  border-radius: 50%;
+  font-size: 18px;
+  flex: 0 0 43px;
+}
+
+#dmPage {
+  background: #0d0e12;
+  color: #f6f6f7;
+  padding-bottom: 0;
+}
+
+#dmPage .topbar {
+  background: #0d0e12;
+}
+
+#dmPage .searchbox {
+  background: #24262d;
+  color: white;
+}
+
+.dm-row {
+  border-bottom: 1px solid #22242b;
+}
+
+.dm-row .row-subtitle { color: #9c9da8; }
+
+#dmChatPage {
+  background: #0d0e12;
+  color: white;
+  padding-bottom: 0;
+}
+
+#dmChatPage .topbar {
+  border-bottom: 1px solid #262830;
+}
+
+#dmChatHistory {
+  top: 105px;
+  bottom: 76px;
+  background: #0d0e12;
+}
+
+#dmChatHistory .bubble-row:not(.mine) .bubble {
+  background: #262830;
+  color: white;
+  border: 1px solid #343640;
+}
+
+#dmChatHistory .bubble-row.mine .bubble {
+  background: linear-gradient(130deg,#8a43f4,#d344a2);
+  color: white;
+}
+
+#dmChatHistory .bubble-time { color: #aaa; }
+
+#dmCompose {
+  background: #0d0e12;
+}
+
+#dmCompose textarea {
+  background: #24262d;
+  color: white;
+  border-color: #343640;
+}
+
+#dmCompose .send {
+  background: #b64be8;
+  color: white;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 2px;
+}
+
+.photo-cell {
+  aspect-ratio: 1;
+  border: 0;
+  padding: 0;
+  background: #e5e5e8;
+  overflow: hidden;
+  position: relative;
+}
+
+.photo-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-cell .photo-placeholder {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 35px;
+}
+
+.note-card {
+  background: white;
+  border-radius: 15px;
+  margin: 0 16px 12px;
+  padding: 17px;
+  box-shadow: 0 1px 3px #0000000a;
+  cursor: pointer;
+}
+
+.note-card p {
+  margin: 7px 0 0;
+  color: #777;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+.primary {
+  border: 0;
+  border-radius: 12px;
+  background: #1677ff;
+  color: white;
+  padding: 12px 16px;
+  font-weight: 650;
+}
+
+.secondary {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  padding: 11px 14px;
+}
+
+.form-field {
+  display: block;
+  margin: 16px 20px;
+}
+
+.form-field label {
+  display: block;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.form-field input, .form-field textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dedee3;
+  border-radius: 10px;
+  outline: none;
+}
+
+.form-field textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+
+.settings-info {
+  margin: 18px;
+  padding: 16px;
+  border-radius: 13px;
+  background: #f0f2f7;
+  color: #555;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+#passcode {
+  background: linear-gradient(160deg,#28303b,#766d61,#15171d);
+}
+
+.pass-title {
+  text-align: center;
+  margin-top: 95px;
+  font-size: 23px;
+}
+
+.pass-dots {
+  display: flex;
+  justify-content: center;
+  gap: 19px;
+  margin: 24px;
+}
+
+.pass-dot {
+  width: 12px;
+  height: 12px;
+  border: 1px solid white;
+  border-radius: 50%;
+}
+
+.pass-dot.filled {
+  background: white;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3,75px);
+  justify-content: center;
+  gap: 14px;
+  margin-top: 40px;
+}
+
+.key {
+  height: 75px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffffff35;
+  color: white;
+  font-size: 29px;
+}
+
+.key small {
+  display: block;
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+
+.pass-actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 35px;
+}
+
+.pass-actions button {
+  background: none;
+  color: white;
+  border: 0;
+  padding: 12px;
+}
+
+.bottom-bar {
+  position: absolute;
+  z-index: 100;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 108px;
+  height: 4px;
+  border-radius: 10px;
+  background: #111;
+  opacity: .8;
+}
+
+.bottom-bar.white {
+  background: white;
+}
+
+.toast {
+  position: absolute;
+  z-index: 200;
+  bottom: 55px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 11px 16px;
+  border-radius: 20px;
+  color: white;
+  background: #222d;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 55px 25px;
+  text-align: center;
+  color: #888;
+  line-height: 1.8;
+}
+
+#lockSettings {
+  display: none;
+}
+
+@media (min-width: 600px) {
+  body {
+    padding: 20px 0;
+  }
+  #phone {
+    height: min(900px, calc(100dvh - 40px));
+    border-radius: 32px;
+    box-shadow: 0 15px 70px #0008;
+  }
+}
+</style>
+</head>
+
+<body>
+<div id="phone">
+  <div id="status" class="dark">
+    <span id="statusTime">3:27</span>
+    <span>● ▰ 59%</span>
+  </div>
+  <div id="island"></div>
+
+  <main id="screen">
+
+    <!-- 잠금 화면 -->
+    <section id="lock" class="page active">
+      <div class="lock-date" id="lockDate">10월 27일 화요일</div>
+      <div class="lock-time" id="lockTime">3:27</div>
+
+      <div class="notification" id="lockNotification">
+        <div style="font-size:12px;color:#666;margin-bottom:8px">🟡 KAKAOTALK</div>
+        <strong id="notificationName">리쿠</strong>
+        <div id="notificationText" style="margin-top:6px">유우짱 일어났어?</div>
+      </div>
+
+      <div class="unlock-hint">위로 쓸어올려 잠금 해제</div>
+    </section>
+
+    <!-- 암호 -->
+    <section id="passcode" class="page">
+      <div class="pass-title">암호 입력</div>
+      <div class="pass-dots" id="passDots">
+        <span class="pass-dot"></span>
+        <span class="pass-dot"></span>
+        <span class="pass-dot"></span>
+        <span class="pass-dot"></span>
+      </div>
+
+      <div class="keypad">
+        <button class="key" onclick="pressKey('1')">1</button>
+        <button class="key" onclick="pressKey('2')">2<small>ABC</small></button>
+        <button class="key" onclick="pressKey('3')">3<small>DEF</small></button>
+        <button class="key" onclick="pressKey('4')">4<small>GHI</small></button>
+        <button class="key" onclick="pressKey('5')">5<small>JKL</small></button>
+        <button class="key" onclick="pressKey('6')">6<small>MNO</small></button>
+        <button class="key" onclick="pressKey('7')">7<small>PQRS</small></button>
+        <button class="key" onclick="pressKey('8')">8<small>TUV</small></button>
+        <button class="key" onclick="pressKey('9')">9<small>WXYZ</small></button>
+        <span></span>
+        <button class="key" onclick="pressKey('0')">0</button>
+        <span></span>
+      </div>
+
+      <div class="pass-actions">
+        <button onclick="go('lock')">취소</button>
+        <button onclick="deleteKey()">⌫</button>
+      </div>
+      <div style="text-align:center;font-size:11px;opacity:.65;margin-top:12px">
+        시뮬레이터 암호는 아무 4자리 숫자나 입력하면 돼.
+      </div>
+    </section>
+
+    <!-- 홈 화면 -->
+    <section id="home" class="page">
+      <div style="display:flex;justify-content:space-between;font-size:13px">
+        <strong>유우시</strong>
+        <span id="homeDate">10월 27일</span>
+      </div>
+
+      <div class="home-widgets">
+        <div class="widget">
+          <div style="font-size:22px">☀️</div>
+          <strong>오늘의 기록</strong>
+          <div class="muted" style="margin-top:8px">평범한 하루</div>
+        </div>
+        <div class="widget">
+          <div style="font-size:22px">📅</div>
+          <strong id="widgetDate">10월 27일</strong>
+          <div class="muted" style="margin-top:8px">유우시의 휴대폰</div>
+        </div>
+      </div>
+
+      <div class="home-grid">
+        <button class="app-icon" onclick="openApp('photos')">
+          <span class="icon photo-icon">🌈</span><span>사진</span>
+        </button>
+        <button class="app-icon" onclick="openApp('contacts')">
+          <span class="icon contact-icon">👤</span><span>연락처</span>
+        </button>
+        <button class="app-icon" onclick="openApp('kakao')">
+          <span class="icon kakao-icon" style="font-weight:800">TALK</span><span>카카오톡</span>
+        </button>
+        <button class="app-icon" onclick="openApp('instagram')">
+          <span class="icon insta-icon">◎</span><span>Instagram</span>
+        </button>
+        <button class="app-icon" onclick="openApp('notes')">
+          <span class="icon note-icon">📝</span><span>메모</span>
+        </button>
+        <button class="app-icon" onclick="openApp('messages')">
+          <span class="icon msg-icon">✉</span><span>메시지</span>
+        </button>
+        <button class="app-icon" onclick="openApp('settings')">
+          <span class="icon setting-icon">⚙️</span><span>설정</span>
+        </button>
+        <button class="app-icon" onclick="showToast('전화 앱은 화면 시뮬레이션입니다.')">
+          <span class="icon phone-icon">☎</span><span>전화</span>
+        </button>
+      </div>
+
+      <div class="dock">
+        <button class="app-icon" onclick="openApp('messages')">
+          <span class="icon phone-icon">☎</span>
+        </button>
+        <button class="app-icon" onclick="openApp('kakao')">
+          <span class="icon kakao-icon">T</span>
+        </button>
+        <button class="app-icon" onclick="openApp('instagram')">
+          <span class="icon insta-icon">◎</span>
+        </button>
+        <button class="app-icon" onclick="openApp('photos')">
+          <span class="icon photo-icon">🌈</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 연락처 -->
+    <section id="contacts" class="page">
+      <div class="topbar">
+        <button class="back" onclick="go('home')">‹</button>
+        <h2>연락처</h2>
+        <button class="back" onclick="openApp('settings')">⚙</button>
+      </div>
+      <div class="section-title">친구</div>
+      <input class="searchbox" placeholder="검색" oninput="filterRows(this,'contactList')">
+      <div id="contactList" class="list"></div>
+    </section>
+
+    <!-- 카카오톡 목록 -->
+    <section id="kakao" class="page">
+      <div class="topbar">
+        <button class="back" onclick="go('home')">‹</button>
+        <h2>채팅</h2>
+        <button class="back" onclick="showToast('대화 검색은 준비 중입니다.')">⌕</button>
+      </div>
+      <input class="searchbox" placeholder="이름 검색" oninput="filterRows(this,'kakaoList')">
+      <div id="kakaoList" class="list"></div>
+      <div class="empty" style="padding:15px">유우시의 채팅</div>
+    </section>
+
+    <!-- 카카오톡 대화 -->
+    <section id="chatPage" class="page">
+      <div class="chat-header">
+        <div class="topbar">
+          <button class="back" onclick="go('kakao')">‹</button>
+          <h2 id="chatTitle">리쿠</h2>
+          <button class="back" onclick="openChatSettings()">⋯</button>
+        </div>
+        <div class="chat-profile">
+          <div class="avatar" id="chatAvatar">🐻</div>
+          <div>
+            <div class="row-title" id="chatProfileName">리쿠</div>
+            <div class="row-subtitle" id="chatStatus">온라인</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-history" id="chatHistory"></div>
+
+      <form class="chat-compose" id="kakaoForm">
+        <button type="button" class="secondary" style="padding:8px" onclick="showToast('사진 첨부 기능은 준비 중입니다.')">＋</button>
+        <textarea id="kakaoInput" rows="1" placeholder="메시지 입력" required></textarea>
+        <button class="send" type="submit">➤</button>
+      </form>
+    </section>
+
+    <!-- 인스타 DM 목록 -->
+    <section id="instagram" class="page" style="background:#0d0e12;color:white">
+      <div class="topbar">
+        <button class="back" onclick="go('home')">‹</button>
+        <h2>Instagram</h2>
+        <button class="back" onclick="showToast('새 메시지')">＋</button>
+      </div>
+      <input class="searchbox" placeholder="검색" oninput="filterRows(this,'dmList')">
+      <div style="padding:12px 18px;font-weight:700">메시지</div>
+      <div id="dmList" class="list"></div>
+    </section>
+
+    <!-- 인스타 DM 대화 -->
+    <section id="dmChatPage" class="page">
+      <div class="topbar">
+        <button class="back" onclick="go('instagram')">‹</button>
+        <div style="display:flex;align-items:center;gap:9px;flex:1">
+          <div class="avatar" id="dmAvatar">🐻</div>
+          <div>
+            <div class="row-title" id="dmTitle">리쿠</div>
+            <div style="font-size:11px;color:#aaa">활동 중</div>
+          </div>
+        </div>
+        <button class="back" onclick="openChatSettings()">ⓘ</button>
+      </div>
+
+      <div class="chat-history" id="dmChatHistory"></div>
+
+      <form class="chat-compose" id="dmCompose">
+        <textarea id="dmInput" rows="1" placeholder="메시지 보내기" required></textarea>
+        <button class="send" type="submit">➤</button>
+      </form>
+    </section>
+
+    <!-- 사진첩 -->
+    <section id="photos" class="page">
+      <div class="topbar">
+        <button class="back" onclick="go('home')">‹</button>
+        <h2>사진</h2>
+        <button class="back" onclick="document.getElementById('photoUpload').click()">＋</button>
+      </div>
+      <div class="section-title">최근 항목</div>
+      <p style="margin:0 22px 15px;color:#888;font-size:13px">사진을 추가하거나 배경화면으로 설정해 봐.</p>
+      <input id="photoUpload" type="file" accept="image/*" multiple hidden>
+      <div id="photoGrid" class="photo-grid"></div>
+      <div style="padding:20px">
+        <button class="secondary" style="width:100%" onclick="document.getElementById('wallpaperUpload').click()">배경화면 변경</button>
+        <input id="wallpaperUpload" type="file" accept="image/*" hidden>
+      </div>
+    </section>
+
+    <!-- 메모 목록 -->
+    <section id="notes" class="page">
+      <div class="topbar">
+        <button class="back" onclick="go('home')">‹</button>
+        <h2>메모</h2>
+        <button class="back" onclick="newNote()">＋</button>
+      </div>
+      <div class="section-title">모든 메모</div>
+      <div id="notesList"></div>
+    </section>
+
+    <!-- 메모 편집 -->
+    <section id="noteEditor" class="page">
+      <div class="topbar">
+        <button class="back" onclick="go('notes')">‹</button>
+        <button class="back" onclick="saveNote()">완료</button>
+      </div>
+      <input id="noteTitle" placeholder="제목" style="width:calc(100% - 40px);margin:15px 20px;border:0;font-size:24px;font-weight:750;outline:none">
+      <textarea id="noteBody" placeholder="메모를 입력하세요..." style="width:calc(100% - 40px);height:65%;margin:0 20px;border:0;outline:none;resize:none;font-size:16px"></textarea>
+      <button class="secondary" style="margin:10px 20px" onclick="deleteNote()">메모 삭제</button>
+    </section>
+
+    <!-- 메시지 -->
+    <section id="messages" class="page">
+      <div class="topbar">
+        <button class="back" onclick="go('home')">‹</button>
+        <h2>메시지</h2>
+      </div>
+      <div class="section-title">최근 메시지</div>
+      <div id="messageList" class="list"></div>
+    </section>
+
+    <!-- 설정 -->
+    <section id="settings" class="page">
+      <div class="topbar">
+        <button class="back" onclick="go('home')">‹</button>
+        <h2>설정</h2>
+        <span></span>
+      </div>
+      <div class="section-title">설정</div>
+
+      <div class="row" style="margin:0 18px" onclick="changeOwner()">
+        <div class="avatar">🐰</div>
+        <div class="row-content">
+          <div class="row-title">유우시</div>
+          <div class="row-subtitle">기기 이름 변경</div>
+        </div>
+        <span>›</span>
+      </div>
+
+      <div class="section-title" style="font-size:20px">AI 연결</div>
+      <div class="settings-info">
+        이 사이트는 GitHub Pages에서 실행됩니다. 실제 AI 대화를 하려면 별도의 서버가 필요합니다.<br><br>
+        아래에는 서버의 주소만 입력하세요. API 비밀번호나 API 키를 여기에 입력하지 마세요.
+      </div>
+
+      <div class="form-field">
+        <label>AI 서버 주소</label>
+        <input id="apiEndpoint" placeholder="https://your-server.example/api/chat">
+      </div>
+      <div style="margin:20px">
+        <button class="primary" style="width:100%" onclick="saveAISettings()">서버 주소 저장</button>
+      </div>
+
+      <div class="settings-info">
+        AI 서버는 POST 방식으로 다음 정보를 받아야 합니다.<br>
+        <code>character</code>, <code>platform</code>, <code>messages</code>, <code>memory</code><br><br>
+        응답은 <code>{"reply":"답변 내용"}</code> 형식이어야 합니다.
+      </div>
+
+      <div class="section-title" style="font-size:20px">상대방 설정</div>
+      <div id="characterSettings" class="list"></div>
+
+      <div style="padding:20px">
+        <button class="secondary" style="width:100%" onclick="resetAll()">모든 대화 기록 초기화</button>
+      </div>
+    </section>
+
+    <!-- 인물별 설정 -->
+    <section id="personSettings" class="page">
+      <div class="topbar">
+        <button class="back" onclick="go('settings')">‹</button>
+        <h2 id="personSettingsTitle">AI 설정</h2>
+        <span></span>
+      </div>
+      <div class="form-field">
+        <label>성격과 말투</label>
+        <textarea id="personPersonality"></textarea>
+      </div>
+      <div class="form-field">
+        <label>기억할 내용</label>
+        <textarea id="personMemory"></textarea>
+      </div>
+      <div style="margin:20px">
+        <button class="primary" style="width:100%" onclick="savePersonSettings()">저장</button>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="bottom-bar white" id="homeIndicator"></div>
+  <div id="toast" class="toast" hidden></div>
+</div>
+
+<script>
+"use strict";
+
+/* ---------------------------------
+   기본 설정과 데이터
+--------------------------------- */
+
+const PEOPLE = {
+  riku: {
+    name: "리쿠",
+    emoji: "🐻",
+    personality: "장난스럽고 친근하다. 반말을 사용하고 자연스럽게 농담한다. 친한 친구처럼 편하게 대화한다."
+  },
+  sion: {
+    name: "오시온",
+    emoji: "🐱",
+    personality: "차분하고 다정하다. 상대의 말을 잘 듣고 부드럽게 반응한다. 과장하지 않고 편안하게 말한다."
+  },
+  sakuya: {
+    name: "사쿠야",
+    emoji: "🐣",
+    personality: "밝고 장난기가 있다. 반응이 생동감 있고 가끔 가볍게 장난친다."
+  },
+  ryo: {
+    name: "료",
+    emoji: "🐶",
+    personality: "자연스럽고 편안하다. 친근하게 대화하며 필요할 때 솔직하고 담백하게 답한다."
+  }
+};
+
+const STORAGE_KEY = "yushi_phone_v1";
+
+function defaultData() {
+  const people = {};
+  for (const [id, p] of Object.entries(PEOPLE)) {
+    people[id] = {
+      personality: p.personality,
+      memory: "",
+      kakao: [],
+      instagram: []
+    };
+  }
+
+  return {
+    owner: "유우시",
+    wallpaper: "",
+    photos: [],
+    notes: [
+      {
+        id: 1,
+        title: "돌아가서 할 것",
+        body: "사진 정리하기\n메시지 확인하기",
+        updated: Date.now()
+      },
+      {
+        id: 2,
+        title: "메모",
+        body: "오늘 기억하고 싶은 일",
+        updated: Date.now()
+      }
+    ],
+    people,
+    apiEndpoint: "",
+    nextNoteId: 3
+  };
+}
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return defaultData();
+
+    const parsed = JSON.parse(saved);
+    const base = defaultData();
+
+    return {
+      ...base,
+      ...parsed,
+      people: Object.fromEntries(
+        Object.keys(PEOPLE).map(id => [
+          id,
+          {
+            ...base.people[id],
+            ...(parsed.people || {})[id]
+          }
+        ])
+      )
+    };
+  } catch (e) {
+    return defaultData();
+  }
+}
+
+let data = loadData();
+let currentPerson = "riku";
+let currentPlatform = "kakao";
+let currentNoteId = null;
+let currentSettingsPerson = "riku";
+let passcode = "";
+let toastTimer = null;
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    showToast("저장 공간이 부족합니다. 사진을 줄여 주세요.");
+  }
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[c]);
+}
+
+/* ---------------------------------
+   시간과 화면 이동
+--------------------------------- */
+
+function updateClock() {
+  const now = new Date();
+  const time = now.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+
+  document.getElementById("statusTime").textContent = time;
+  document.getElementById("lockTime").textContent = time;
+
+  const date = now.toLocaleDateString("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "long"
+  });
+
+  document.getElementById("lockDate").textContent = date;
+  document.getElementById("homeDate").textContent =
+    now.toLocaleDateString("ko-KR", {month:"long",day:"numeric"});
+  document.getElementById("widgetDate").textContent =
+    now.toLocaleDateString("ko-KR", {month:"long",day:"numeric"});
+}
+
+updateClock();
+setInterval(updateClock, 15000);
+
+function go(id) {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
+
+  const target = document.getElementById(id);
+  if (!target) return;
+
+  target.classList.add("active");
+  target.scrollTop = 0;
+
+  const darkScreens = ["lock","passcode","dmPage","dmChatPage"];
+  const status = document.getElementById("status");
+  const indicator = document.getElementById("homeIndicator");
+
+  status.className = darkScreens.includes(id) ? "dark" : "light";
+  indicator.classList.toggle("white", darkScreens.includes(id));
+
+  if (id === "contacts") renderContacts();
+  if (id === "kakao") renderKakaoList();
+  if (id === "instagram") renderDMList();
+  if (id === "photos") renderPhotos();
+  if (id === "notes") renderNotes();
+  if (id === "messages") renderMessages();
+  if (id === "settings") renderSettings();
+}
+
+function openApp(id) {
+  go(id);
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.hidden = true, 2400);
+}
+
+function setWallpaper(url) {
+  data.wallpaper = url;
+  saveData();
+  applyWallpaper();
+}
+
+function applyWallpaper() {
+  if (!data.wallpaper) return;
+
+  const safeURL = CSS.escape(data.wallpaper);
+  document.getElementById("lock").style.backgroundImage =
+    `linear-gradient(180deg,#0002,#0003),url("${safeURL}")`;
+
+  document.getElementById("passcode").style.backgroundImage =
+    `linear-gradient(180deg,#0005,#0005),url("${safeURL}")`;
+
+  document.getElementById("home").style.backgroundImage =
+    `linear-gradient(180deg,#0002,#0002),url("${safeURL}")`;
+}
+
+applyWallpaper();
+
+/* ---------------------------------
+   잠금 화면
+--------------------------------- */
+
+document.getElementById("lock").addEventListener("click", () => {
+  passcode = "";
+  updatePassDots();
+  go("passcode");
+});
+
+function pressKey(key) {
+  if (passcode.length >= 4) return;
+  passcode += key;
+  updatePassDots();
+
+  if (passcode.length === 4) {
+    setTimeout(() => {
+      go("home");
+      passcode = "";
+      updatePassDots();
+    }, 180);
+  }
+}
+
+function deleteKey() {
+  passcode = passcode.slice(0, -1);
+  updatePassDots();
+}
+
+function updatePassDots() {
+  document.querySelectorAll(".pass-dot").forEach((dot, i) => {
+    dot.classList.toggle("filled", i < passcode.length);
+  });
+}
+
+let touchStartY = 0;
+
+document.getElementById("lock").addEventListener("touchstart", e => {
+  touchStartY = e.touches[0].clientY;
+}, {passive:true});
+
+document.getElementById("lock").addEventListener("touchend", e => {
+  const endY = e.changedTouches[0].clientY;
+  if (touchStartY - endY > 40) {
+    passcode = "";
+    updatePassDots();
+    go("passcode");
+  }
+}, {passive:true});
+
+/* 아래 홈 표시줄을 누르면 홈으로 이동 */
+document.getElementById("homeIndicator").addEventListener("click", () => {
+  go("home");
+});
+
+/* ---------------------------------
+   연락처와 채팅 목록
+--------------------------------- */
+
+function avatarHTML(id) {
+  const p = PEOPLE[id];
+  return `<div class="avatar">${p.emoji}</div>`;
+}
+
+function lastMessage(id, platform) {
+  const arr = data.people[id][platform];
+  if (!arr.length) return "대화를 시작해 보세요";
+  const last = arr[arr.length - 1];
+  return (last.role === "user" ? "나: " : "") + last.content;
+}
+
+function renderContacts() {
+  const list = document.getElementById("contactList");
+  list.innerHTML = Object.keys(PEOPLE).map(id => `
+    <div class="row" onclick="openPerson('${id}')">
+      ${avatarHTML(id)}
+      <div class="row-content">
+        <div class="row-title">${PEOPLE[id].name}</div>
+        <div class="row-subtitle">친구</div>
+      </div>
+      <span>›</span>
+    </div>
+  `).join("");
+}
+
+function renderKakaoList() {
+  document.getElementById("kakaoList").innerHTML =
+    Object.keys(PEOPLE).map(id => `
+      <div class="row" onclick="openChat('${id}','kakao')">
+        ${avatarHTML(id)}
+        <div class="row-content">
+          <div class="row-title">${PEOPLE[id].name}</div>
+          <div class="row-subtitle">${escapeHTML(lastMessage(id,'kakao'))}</div>
+        </div>
+        <span class="muted" style="font-size:11px">›</span>
+      </div>
+    `).join("");
+}
+
+function renderDMList() {
+  document.getElementById("dmList").innerHTML =
+    Object.keys(PEOPLE).map(id => `
+      <div class="row dm-row" onclick="openChat('${id}','instagram')">
+        ${avatarHTML(id)}
+        <div class="row-content">
+          <div class="row-title">${PEOPLE[id].name}</div>
+          <div class="row-subtitle">${escapeHTML(lastMessage(id,'instagram'))}</div>
+        </div>
+        <span style="color:#aaa">›</span>
+      </div>
+    `).join("");
+}
+
+function openPerson(id) {
+  currentPerson = id;
+  openChat(id, "kakao");
+}
+
+function filterRows(input, listId) {
+  const q = input.value.toLowerCase();
+  document.querySelectorAll(`#${listId} .row`).forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(q) ? "" : "none";
+  });
+}
+
+/* ---------------------------------
+   채팅 화면과 기록
+--------------------------------- */
+
+function openChat(id, platform) {
+  currentPerson = id;
+  currentPlatform = platform;
+
+  const person = PEOPLE[id];
+
+  if (platform === "kakao") {
+    document.getElementById("chatTitle").textContent = person.name;
+    document.getElementById("chatProfileName").textContent = person.name;
+    document.getElementById("chatAvatar").textContent = person.emoji;
+    renderHistory("chatHistory", id, platform);
+    go("chatPage");
+  } else {
+    document.getElementById("dmTitle").textContent = person.name;
+    document.getElementById("dmAvatar").textContent = person.emoji;
+    renderHistory("dmChatHistory", id, platform);
+    go("dmChatPage");
+  }
+}
+
+function openChatSettings() {
+  currentSettingsPerson = currentPerson;
+  const p = data.people[currentPerson];
+
+  document.getElementById("personSettingsTitle").textContent =
+    PEOPLE[currentPerson].name + " 설정";
+  document.getElementById("personPersonality").value = p.personality;
+  document.getElementById("personMemory").value = p.memory;
+
+  go("personSettings");
+}
+
+function renderHistory(elementId, id, platform) {
+  const history = document.getElementById(elementId);
+  const messages = data.people[id][platform];
+
+  if (!messages.length) {
+    history.innerHTML = `
+      <div class="day-label">오늘</div>
+      <div style="text-align:center;font-size:12px;color:#45515e;padding:20px">
+        ${escapeHTML(PEOPLE[id].name)}와의 대화를 시작해 보세요.
+      </div>
+    `;
+    return;
+  }
+
+  history.innerHTML = `
+    <div class="day-label">오늘</div>
+    ${messages.map(m => {
+      const mine = m.role === "user";
+      const time = m.time || "";
+      return `
+        <div class="bubble-row ${mine ? "mine" : ""}">
+          <div class="bubble">${escapeHTML(m.content)}</div>
+          <span class="bubble-time">${escapeHTML(time)}</span>
+        </div>
+      `;
+    }).join("")}
+  `;
+
+  history.scrollTop = history.scrollHeight;
+}
+
+function currentMessages() {
+  return data.people[currentPerson][currentPlatform];
+}
+
+function addMessage(id, platform, role, content) {
+  const now = new Date();
+  const time = now.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+
+  data.people[id][platform].push({
+    role,
+    content,
+    time,
+    timestamp: Date.now()
+  });
+
+  saveData();
+}
+
+document.getElementById("kakaoForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const input = document.getElementById("kakaoInput");
+  await sendMessage(input.value, "kakao");
+  input.value = "";
+});
+
+document.getElementById("dmCompose").addEventListener("submit", async e => {
+  e.preventDefault();
+  const input = document.getElementById("dmInput");
+  await sendMessage(input.value, "instagram");
+  input.value = "";
+});
+
+async function sendMessage(text, platform) {
+  text = text.trim();
+  if (!text) return;
+
+  const id = currentPerson;
+  currentPlatform = platform;
+
+  addMessage(id, platform, "user", text);
+  refreshChat();
+
+  const history = data.people[id][platform];
+
+  if (!data.apiEndpoint.trim()) {
+    addMessage(
+      id,
+      platform,
+      "assistant",
+      "AI 서버가 아직 연결되지 않았어! ⚙️ 설정에서 AI 서버 주소를 등록하면 실제 AI와 대화할 수 있어."
+    );
+    refreshChat();
+    return;
+  }
+
+  showToast(PEOPLE[id].name + "에게 답장받는 중...");
+
+  try {
+    const recentMessages = history.slice(-30).map(m => ({
+      role: m.role === "assistant" ? "assistant" :
+            m.role === "user" ? "user" : "assistant",
+      content: m.content
+    }));
+
+    const response = await fetch(data.apiEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        character: {
+          id,
+          name: PEOPLE[id].name,
+          personality: data.people[id].personality
+        },
+        platform,
+        messages: recentMessages,
+        memory: data.people[id].memory,
+        owner: data.owner
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("AI 서버 응답 오류: " + response.status);
+    }
+
+    const result = await response.json();
+    const reply = result.reply || result.message;
+
+    if (!reply || typeof reply !== "string") {
+      throw new Error("서버가 답변을 반환하지 않았습니다.");
+    }
+
+    addMessage(id, platform, "assistant", reply);
+
+    /* 간단한 대화 요약 메모리: 실제 장기 기억은 서버에서 관리하는 것이 좋습니다. */
+    if (history.length > 0 && history.length % 12 === 0) {
+      data.people[id].memory =
+        (data.people[id].memory + "\n최근 대화 주제: " + text).slice(-2000);
+    }
+
+    saveData();
+    refreshChat();
+  } catch (error) {
+    console.error(error);
+    addMessage(
+      id,
+      platform,
+      "assistant",
+      "AI 서버에 연결하지 못했어. 서버 주소와 서버 상태를 확인해 줘. (오류: " +
+      error.message + ")"
+    );
+    refreshChat();
+  }
+}
+
+function refreshChat() {
+  if (currentPlatform === "kakao") {
+    renderHistory("chatHistory", currentPerson, "kakao");
+  } else {
+    renderHistory("dmChatHistory", currentPerson, "instagram");
+  }
+  renderKakaoList();
+  renderDMList();
+  renderMessages();
+
+  const history = data.people[currentPerson][currentPlatform];
+  const last = history[history.length - 1];
+
+  if (last && last.role === "assistant") {
+    document.getElementById("notificationName").textContent =
+      PEOPLE[currentPerson].name;
+    document.getElementById("notificationText").textContent = last.content;
+  }
+}
+
+/* ---------------------------------
+   사진첩과 배경화면
+--------------------------------- */
+
+document.getElementById("photoUpload").addEventListener("change", async e => {
+  const files = [...e.target.files];
+
+  for (const file of files) {
+    if (!file.type.startsWith("image/")) continue;
+
+    try {
+      const compressed = await compressImage(file);
+      data.photos.unshift({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random()),
+        url: compressed,
+        name: file.name
+      });
+    } catch (err) {
+      showToast("사진을 불러오지 못했습니다.");
+    }
+  }
+
+  saveData();
+  renderPhotos();
+  e.target.value = "";
+});
+
+document.getElementById("wallpaperUpload").addEventListener("change", async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    const compressed = await compressImage(file);
+    setWallpaper(compressed);
+    showToast("배경화면을 변경했어!");
+  } catch (err) {
+    showToast("배경화면을 설정하지 못했어.");
+  }
+
+  e.target.value = "";
+});
+
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+
+      img.onload = () => {
+        const max = 900;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        resolve(canvas.toDataURL("image/jpeg", .75));
+      };
+
+      img.src = reader.result;
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPhotos() {
+  const grid = document.getElementById("photoGrid");
+
+  if (!data.photos.length) {
+    grid.innerHTML = `
+      <div class="empty" style="grid-column:1/4">
+        아직 사진이 없어.<br>
+        위쪽 + 버튼을 눌러 사진을 추가해 봐.
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = data.photos.map(photo => `
+    <button class="photo-cell" onclick="photoOptions('${photo.id}')">
+      <img src="${photo.url}" alt="${escapeHTML(photo.name)}">
+    </button>
+  `).join("");
+}
+
+function photoOptions(id) {
+  const photo = data.photos.find(p => p.id === id);
+  if (!photo) return;
+
+  if (confirm("이 사진을 배경화면으로 설정할까?")) {
+    setWallpaper(photo.url);
+    showToast("배경화면을 변경했어!");
+  }
+}
+
+/* ---------------------------------
+   메모
+--------------------------------- */
+
+function renderNotes() {
+  const list = document.getElementById("notesList");
+
+  list.innerHTML = data.notes.map(note => `
+    <div class="note-card" onclick="editNote(${note.id})">
+      <strong>${escapeHTML(note.title || "제목 없음")}</strong>
+      <p>${escapeHTML(note.body.slice(0,100))}</p>
+    </div>
+  `).join("") || `<div class="empty">저장된 메모가 없어.</div>`;
+}
+
+function newNote() {
+  currentNoteId = null;
+  document.getElementById("noteTitle").value = "";
+  document.getElementById("noteBody").value = "";
+  go("noteEditor");
+}
+
+function editNote(id) {
+  const note = data.notes.find(n => n.id === id);
+  if (!note) return;
+
+  currentNoteId = id;
+  document.getElementById("noteTitle").value = note.title;
+  document.getElementById("noteBody").value = note.body;
+  go("noteEditor");
+}
+
+function saveNote() {
+  const title = document.getElementById("noteTitle").value.trim() || "제목 없음";
+  const body = document.getElementById("noteBody").value;
+
+  if (currentNoteId !== null) {
+    const note = data.notes.find(n => n.id === currentNoteId);
+    if (note) {
+      note.title = title;
+      note.body = body;
+      note.updated = Date.now();
+    }
+  } else {
+    data.notes.unshift({
+      id: data.nextNoteId++,
+      title,
+      body,
+      updated: Date.now()
+    });
+  }
+
+  saveData();
+  renderNotes();
+  go("notes");
+  showToast("메모를 저장했어.");
+}
+
+function deleteNote() {
+  if (currentNoteId === null) {
+    go("notes");
+    return;
+  }
+
+  if (!confirm("이 메모를 삭제할까?")) return;
+
+  data.notes = data.notes.filter(n => n.id !== currentNoteId);
+  saveData();
+  renderNotes();
+  go("notes");
+}
+
+/* ---------------------------------
+   메시지 목록
+--------------------------------- */
+
+function renderMessages() {
+  const list = document.getElementById("messageList");
+
+  list.innerHTML = Object.keys(PEOPLE).map(id => `
+    <div class="row" onclick="openChat('${id}','kakao')">
+      ${avatarHTML(id)}
+      <div class="row-content">
+        <div class="row-title">${PEOPLE[id].name}</div>
+        <div class="row-subtitle">${escapeHTML(lastMessage(id,'kakao'))}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+/* ---------------------------------
+   AI 설정
+--------------------------------- */
+
+function renderSettings() {
+  document.getElementById("apiEndpoint").value = data.apiEndpoint || "";
+
+  document.getElementById("characterSettings").innerHTML =
+    Object.keys(PEOPLE).map(id => `
+      <div class="row" onclick="editPerson('${id}')">
+        ${avatarHTML(id)}
+        <div class="row-content">
+          <div class="row-title">${PEOPLE[id].name}</div>
+          <div class="row-subtitle">${escapeHTML(data.people[id].personality)}</div>
+        </div>
+        <span>›</span>
+      </div>
+    `).join("");
+}
+
+function saveAISettings() {
+  const endpoint = document.getElementById("apiEndpoint").value.trim();
+
+  if (endpoint && !/^https?:\/\//i.test(endpoint)) {
+    showToast("http:// 또는 https://로 시작하는 주소를 입력해 줘.");
+    return;
+  }
+
+  data.apiEndpoint = endpoint;
+  saveData();
+  showToast(endpoint ? "AI 서버 주소를 저장했어." : "AI 서버 주소를 비웠어.");
+}
+
+function editPerson(id) {
+  currentSettingsPerson = id;
+
+  document.getElementById("personSettingsTitle").textContent =
+    PEOPLE[id].name + " 설정";
+  document.getElementById("personPersonality").value =
+    data.people[id].personality;
+  document.getElementById("personMemory").value =
+    data.people[id].memory;
+
+  go("personSettings");
+}
+
+function savePersonSettings() {
+  const p = data.people[currentSettingsPerson];
+
+  p.personality = document.getElementById("personPersonality").value.trim();
+  p.memory = document.getElementById("personMemory").value.trim();
+
+  saveData();
+  go("settings");
+  showToast("AI 설정을 저장했어.");
+}
+
+function changeOwner() {
+  const name = prompt("휴대폰 주인 이름", data.owner);
+  if (!name || !name.trim()) return;
+
+  data.owner = name.trim();
+  saveData();
+  showToast("기기 이름을 변경했어.");
+}
+
+function resetAll() {
+  if (!confirm("모든 대화와 설정을 초기화할까? 이 작업은 되돌릴 수 없어.")) return;
+
+  const fresh = defaultData();
+  data = fresh;
+  saveData();
+  go("home");
+  showToast("초기화했어.");
+}
+
+/* ---------------------------------
+   초기화
+--------------------------------- */
+
+function renderAll() {
+  renderContacts();
+  renderKakaoList();
+  renderDMList();
+  renderPhotos();
+  renderNotes();
+  renderMessages();
+}
+
+renderAll();
+</script>
+</body>
+</html>
